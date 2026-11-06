@@ -17,13 +17,10 @@
 
 @on-reset ( -> )
 	#800f DEO
-	journal/<delete>
 	sitemap/<delete>
 	lexicon/<load>
 	sitemap/<build>
-	diaries/<parse>
 	lexicon/<build>
-	diaries/<print-available>
 	BRK
 
 %<continue> ( t -- ) {
@@ -433,7 +430,6 @@
 	DUP2 path-site/make .File2/name DEO2
 	( | cleanup )
 	term/<clear>
-	DUP2 diary/<load>
 	DUP2 incoming/<load>
 	( | verify orphans )
 	.File/success DEI2 ORA ?{
@@ -441,7 +437,6 @@
 	( | fill name )
 	DUP2 term/<set-name>
 	DUP2 lexicon/find-parent term/<set-parent>
-	diary/find term/<set-diary>
 	( recover ) #0001 .File2/length DEO2
 	( | build )
 	;dict/doctype html/<str>
@@ -460,10 +455,7 @@
 	/<build-nav>
 	;ascii/line .File2/write DEO2
 	;tag/main html/<open>
-	;term/diary #01 html/<photo>
 	DUP2 <build-include>
-	/<build-module>
-	/<build-events>
 	/<build-incoming>
 	;tag/main html/<close>
 	;path/meta-footer <build-include>
@@ -959,14 +951,14 @@
 	&sitemap "src/htm/sitemap.htm 00
 	&events "src/htm/events.htm 00
 	&journal "src/htm/journal.htm 00
-	&default-image "https://wiki.xxiivv.com/media/ "services/rss.jpg 00
+	&default-image "https://r-ballard.github.io/oscean/media/icon.svg 00
 	&meta-head "meta_head 00
 	&meta-header "meta_header 00
 	&meta-footer "meta_footer 00
-	&abs-site "https://wiki.xxiivv.com/site/ 00
-	&abs-diary "https://wiki.xxiivv.com/media/diary/ 00
+	&abs-site "https://r-ballard.github.io/oscean/site/ 00
+	&abs-diary "../media/blog/ 00
 
-@dict/xxiivv-txt "XXIIVV 00
+@dict/xxiivv-txt "Russ 20 "Ballard 00
 	&self-txt "self 00
 	&mdash-entity-txt 20 "&mdash; 20 00
 	&parent-txt "parent 00
@@ -989,4 +981,3 @@
 @incoming/buf $&buflen
 
 @workarea/buf
-

@@ -1,425 +1,177 @@
-( 54K . Onelepy Quemes )
-
+( Native Gregorian blog. Manifest: ISO-date-slug LF; post: title LF HTML. )
 |a0 @File1/vector $2 &success $2 &stat $2 &delete $1 &append $1 &name $2 &length $2 &read $2 &write $2
 |b0 @File2/vector $2 &success $2 &stat $2 &delete $1 &append $1 &name $2 &length $2 &read $2 &write $2
-|c0 @DateTime/year $2 &month $1 &day $1 &hour $1 &minute $1 &second $1 &dotw $1 &doty $2 &isdst $1
-|000f @logs/from
-|0015 @logs/to
-|8000 @workarea/len
-
-|000
-
-	@now $2
-
-|100
-
-@on-reset ( -> )
-	arvelie/get-now .now STZ2
-	now/<generate>
-	rss/<generate>
-	BRK
-
-%u8/mod ( a b -- res ) {
-	DIVk MUL SUB }
-
-%u8/dec ( v -- chr ) {
-	#0a u8/mod LIT "0 ADD }
-
-%u8/dec2 ( v -- xd dx ) {
-	( xy ) DUP #0a DIV u8/dec
-	( yx ) SWP u8/dec }
-
-%u16/mod ( a* b* -- a%b* ) {
-	DIV2k MUL2 SUB2 }
-
-(
-@|Html )
-
-%html/<lb> { ;ascii/line .File2/write DEO2 }
-
-%html/<ws> { ;ascii/space .File2/write DEO2 }
-
-%html/<comma> { ;ascii/comma .File2/write DEO2 }
-
-%html/<str> ( addr* -- ) {
-	DUP2 str/tail OVR2 SUB2 html/<length> }
-
-%html/<length> ( src* length* -- ) {
-	.File2/length DEO2
-	.File2/write DEO2
-	#0001 .File2/length DEO2 }
-
-%html/<attribute> ( body* attr* -- ) {
-	;ascii/space .File2/write DEO2
-	html/<str>
-	;ascii/equal .File2/write DEO2
-	[ LIT2r =ascii/quote LITr -File2/write ] DEO2kr
-	#0003 html/<length>
-	DEO2r }
-
-%html/<open> ( tag* -- ) {
-	;ascii/lt .File2/write DEO2
-	html/<str>
-	;ascii/gt .File2/write DEO2 }
-
-%html/<open-id> ( class* tag* -- ) {
-	;ascii/lt .File2/write DEO2
-	html/<str>
-	;dict/id html/<attribute>
-	;ascii/gt .File2/write DEO2 }
-
-%html/<close> ( tag* -- ) {
-	;ascii/lt .File2/write DEO2
-	;ascii/slash .File2/write DEO2
-	html/<str>
-	;ascii/gt .File2/write DEO2 }
-
-%html/<auto> ( str* tag* -- ) {
-	DUP2 html/<open>
-	SWP2 html/<str>
-	html/<close> }
-
-(
-@|Now )
-
-@now/<generate> ( -- )
-	[ LIT2 -logs/to -logs/from ]
-	&>l
-		DUP /<parse-year>
-		INC GTHk ?/>l
-	POP2 JMP2r
-
-@now/<parse-year> ( arv-year -- )
-	DUP src-htm-path/make .File2/name DEO2
-	#0001 .File2/length DEO2
-	STHk src-log-path/<set-year>
-	( | parse head )
-	#fe src-log-path/<set-month>
-	;src-log-path/buf /<parse-head>
-	( | search for logs )
-	#1a
-	&>lp
-		#01 SUB DUP src-log-path/<set-month>
-		STHkr OVR ;src-log-path/buf /<parse-month>
-		DUP ?/>lp
-	POP POPr JMP2r
-
-@now/<parse-head> ( year path* -- )
-	workarea/<load>
-	ORA ?{ JMP2r }
-	;workarea/buf html/<str>
-	JMP2r
-
-@now/<parse-month> ( year month path* -- )
-	workarea/<load>
-	ORA ?{ POP2 JMP2r }
-	( | h3 )
-	arvelie/make DUP2 ;tag/h3 html/<open-id>
-	DUP2 #0003 html/<length>
-	;tag/h3 html/<close>
-	html/<lb>
-	( | article )
-	;tag/article html/<open>
-	html/<lb>
-	( | YYYY-MM-DD Title )
-	;tag/h2 html/<open>
-	( use arvelie/make ) arvelie/year-month-day year-month-day/make html/<str>
-	html/<ws>
-	( title ) ;workarea/buf DUP2k str/next STH2k SWP2 INC2 SUB2 html/<length>
-	;tag/h2 html/<close>
-	( | body )
-	STH2r html/<str>
-	;tag/article html/<close>
-	html/<lb>
-	html/<lb>
-	JMP2r
-
-(
-@|RSS )
-
-@rss/<generate> ( -- )
-	;dict/rss-path .File2/name DEO2
-	#0001 .File2/length DEO2
-	;dict/xml-head html/<str>
-	html/<lb>
-	;dict/rss-version html/<str>
-	html/<lb>
-	;tag/channel html/<open>
-	html/<lb>
-	;dict/title ;tag/title html/<auto>
-	;path/url ;tag/link html/<auto>
-	;dict/desc ;tag/description html/<auto>
-	html/<lb>
-	( | body )
-	[ LIT2 -logs/from -logs/to ]
-	&>l
-		DUP /<parse-year>
-		#01 SUB NEQk ?/>l
-	POP /<parse-year>
-	;tag/channel html/<close>
-	;tag/rss html/<close>
-	JMP2r
-
-@rss/<parse-year> ( arv-year -- )
-	STHk src-log-path/<set-year>
-	#1a
-	&>lp
-		#01 SUB
-		( | only past logs )
-		STHkr OVR arvelie/is-future ?{
-			DUP src-log-path/<set-month>
-			STHkr OVR ;src-log-path/buf /<parse-month> }
-		DUP ?/>lp
-	POP POPr JMP2r
-
-@rss/<parse-month> ( year month path* -- )
-	workarea/<load>
-	ORA ?{ POP2 JMP2r }
-	;tag/item html/<open>
-	html/<lb>
-	( | link )
-	DUP2 site-htm-path/make ;tag/link html/<auto>
-	html/<lb>
-	( | date )
-	;tag/pubdate html/<open>
-	arvelie/make arvelie/year-month-day year-month-day/<emit>
-	html/<ws>
-	;dict/midnight html/<str>
-	;tag/pubdate html/<close>
-	html/<lb>
-	( | title )
-	;tag/title html/<open>
-	;workarea/buf DUP2k str/next STH2k SWP2 INC2 SUB2 html/<length>
-	;tag/title html/<close>
-	html/<lb>
-	;tag/description html/<open>
-	;tag/cdata-a html/<str>
-	STH2r html/<str>
-	;tag/cdata-b html/<str>
-	;tag/description html/<close>
-	html/<lb>
-	;tag/item html/<close>
-	html/<lb>
-	html/<lb>
-	JMP2r
-
-(
-@|Buffers )
-
-@src-log-path/<set-year> ( year -- )
-	u8/dec2 ,&y STR2
-	JMP2r
-
-@src-log-path/<set-month> ( month -- )
-	LIT "a ADD ,&m STR
-	JMP2r
-
-	&buf "src/logs/ &y $2 &m $1 ".htm 00
-
-@src-htm-path/make ( arv-year -- )
-	#00 SWP #07d6 ADD2 u16/chr4 ,&ab STR2
-	,&cd STR2
-	;&buf JMP2r
-
-	&buf "src/htm/ &ab $2 &cd $2 ".htm 00
-
-@site-htm-path/make ( arv-year month -- )
-	LIT "A ADD ,&m STR
-	DUP u8/dec2 ,&y STR2
-	#00 SWP #07d6 ADD2 u16/chr4 ,&ab STR2
-	,&cd STR2
-	;&buf JMP2r
-
-	&buf "https://wiki.xxiivv.com/site/ &ab $2 &cd $2 ".html#
-	&y "33
-	&m "J 00
-
-@workarea/<load> ( path* -- succ* )
-	.File1/name DEO2
-	;&len .File1/length DEO2
-	;&buf .File1/read DEO2
-	.File1/success DEI2 DUP2 ;&buf ADD2 #0000 SWP2 STA2
-	JMP2r
-
-(
-@|Date )
-
-@arvelie/get-now ( -- ayear amonth )
-	( y ) .DateTime/year DEI2 #07d6 SUB2 NIP
-	( m ) .DateTime/doty DEI2 #000e DIV2 NIP JMP2r
-
-@arvelie/is-future ( ayear amonth -- t )
-	.now LDZ2 GTH2 JMP2r
-
-@arvelie/make ( ayear amonth -- str* )
-	LIT "A ADD ,&m STR
-	u8/dec2 ,&y STR2
-	;&buf JMP2r
-	&buf &y $2 &m $1 "00 00
-
-@arvelie/get-year ( date* -- year* )
-	dec/parse #07d6 ADD2 JMP2r
-
-@arvelie/get-month ( char -- res )
-	DUP LIT "+ NEQ ?{ POP #1a JMP2r }
-	[ LIT "A ] SUB JMP2r
-
-@arvelie/get-doty ( date* -- doty* )
-	INC2 INC2 LDAk /get-month STH
-	INC2 dec/parse #00 STHr #000e MUL2 ADD2 JMP2r
-
-@arvelie/year-month-day ( date* -- year* month day )
-	DUP2 /get-doty SWP2 /get-year !doty-year/year-month-day
-
-@year-month-day/make ( y* m d -- str* )
-	( xd ) u8/dec2 ,&d STR2
-	( xm ) INC u8/dec2 ,&m STR2
-	u16/chr4 ,&ab STR2
-	,&cd STR2
-	;&buf JMP2r
-	&buf &ab $2 &cd $2 "- &m $2 "- &d $2 00
-
-@year-month-day/dotw ( year* m d -- dotw )
-	OVR #01 GTH ?{
-		( m < 3 ) SWP2 #0001 SUB2 SWP2 }
-	STH2
-	( y* y/4* ) DUP2 #02 SFT2
-	( y* y/4-y/100* ) OVR2 #0064 DIV2 SUB2
-	( y+y/4-y/100+y/400* ) OVR2 #0190 DIV2 ADD2 ADD2
-	( y+y/4-y/100+y/400+d* ) #00 STHr ADD2
-	( y+y/4-y/100+y/400+d+lut[m]* ) #0000 STHr ;&lut ADD2 LDA ADD2
-	( % 7 ) #0007 u16/mod NIP JMP2r
-
-	&lut [ 00 03 02 05 00 03 05 01 04 06 02 04 ]
-
+|0000 @cur $2 @next $2 @prev $2 @scan $2 @ptr-a $2 @ptr-b $2 @ptr-n $2 @year $2 @month $1 @day $1 @is-rss $1 @body $2 @tmp $1
+|0100
+@on-reset
+ site-url/load
+ ;manifest .File1/name DEO2 #0004 .File1/length DEO2 ;stat-buf .File1/stat DEO2
+ ;stat-buf LDA DUP #21 EQU SWP #2d EQU ORA ?{ !&read } ;err/missing !fatal
+ &read #1fff .File1/length DEO2 ;entries .File1/read DEO2 .File1/success DEI2
+ DUP2 #1fff EQU2 ?invalid
+ ;entries ADD2 #00 SWP2 STA
+ ;html-path .File2/name DEO2 #0001 .File2/length DEO2
+ ;entries LDA ?{ ;empty out } ;entries .cur STZ2 process
+ #01 .is-rss STZ ;rss-path .File2/name DEO2
+ ;rss-head out ;base out ;channel-link out ;entries .cur STZ2 #0000 .prev STZ2 process ;rss-tail out BRK
+@process
+ .cur LDZ2 LDA ?{ JMP2r }
+ .cur LDZ2 .scan STZ2
+ &line .scan LDZ2 LDA DUP #0a EQU ?&end DUP #00 EQU ?&end POP
+ .scan LDZ2 INC2 .scan STZ2 !&line
+ &end POP #00 .scan LDZ2 STA .scan LDZ2 INC2 .next STZ2
+ validate
+ .is-rss LDZ ?rss-item
+ ;article out .cur LDZ2 out ;article-title out
+ ;post load-post .body STZ2 #000a .File2/length DEO2 .cur LDZ2 .File2/write DEO2 #0001 .File2/length DEO2 ;space out ;post escape ;heading-end out
+ .body LDZ2 out ;article-end out !advance
+@rss-item
+ ;item out ;post load-post .body STZ2 ;post escape ;title-end out
+ ;link out ;base out ;blog-path out .cur LDZ2 out ;link-end out
+ ;pub out .year LDZ2 .month LDZ .day LDZ year-month-day/<emit>
+ ;pub-end out ;desc out #000a .File2/length DEO2 .cur LDZ2 .File2/write DEO2 #0001 .File2/length DEO2 ;space out ;post escape ;desc-end out
+@advance
+ .cur LDZ2 .prev STZ2 .next LDZ2 .cur STZ2 !process
+@validate
+ .cur LDZ2 .scan STZ2 #0000 .year STZ2
+ #04 .tmp STZ &year .year LDZ2 #000a MUL2 digit #00 SWP ADD2 .year STZ2 .tmp LDZ #01 SUB DUP .tmp STZ ?&year
+ .year LDZ2 ORA ?{ !invalid }
+ dash digit #0a MUL digit ADD #01 SUB DUP .month STZ #0c LTH ?{ !invalid }
+ dash digit #0a MUL digit ADD DUP .day STZ #00 EQU ?invalid
+ .year LDZ2 .month LDZ year-month/days .day LDZ LTH ?invalid dash
+ .scan LDZ2 LDA ?{ !invalid }
+ &slug .scan LDZ2 .cur LDZ2 SUB2 #00ef GTH2 ?invalid .scan LDZ2 LDA DUP ?{ POP !&ordered }
+ DUP #61 LTH #00 EQU OVR #7b LTH AND ?&safe
+ DUP #30 LTH #00 EQU OVR #3a LTH AND ?&safe
+ DUP #2d EQU ?&safe !invalid
+ &safe POP .scan LDZ2 INC2 .scan STZ2 !&slug
+ &ordered .prev LDZ2 ORA ?{ JMP2r }
+ .prev LDZ2 .ptr-a STZ2 .cur LDZ2 .ptr-b STZ2 #000a .ptr-n STZ2
+ &date .ptr-a LDZ2 LDA .ptr-b LDZ2 LDA GTH ?&duplicates
+ .ptr-a LDZ2 LDA .ptr-b LDZ2 LDA LTH ?invalid
+ .ptr-a LDZ2 INC2 .ptr-a STZ2 .ptr-b LDZ2 INC2 .ptr-b STZ2 .ptr-n LDZ2 #0001 SUB2 DUP2 .ptr-n STZ2 ORA ?&date
+ &duplicates ;entries .ptr-a STZ2
+ &prior .ptr-a LDZ2 .cur LDZ2 EQU2 ?&done
+ .ptr-a LDZ2 .ptr-b STZ2 .cur LDZ2 .scan STZ2
+ &cmp .ptr-b LDZ2 LDA .scan LDZ2 LDA NEQ ?&skip
+ .ptr-b LDZ2 LDA #00 EQU ?invalid
+ .ptr-b LDZ2 INC2 .ptr-b STZ2 .scan LDZ2 INC2 .scan STZ2 !&cmp
+ &skip .ptr-a LDZ2 LDA ?{ .ptr-a LDZ2 INC2 .ptr-a STZ2 !&prior }
+ .ptr-a LDZ2 INC2 .ptr-a STZ2 !&skip
+ &done JMP2r
+@digit
+ .scan LDZ2 LDA DUP #30 LTH ?invalid DUP #39 GTH ?invalid #30 SUB
+ .scan LDZ2 INC2 .scan STZ2 JMP2r
+@dash .scan LDZ2 LDA #2d NEQ ?invalid .scan LDZ2 INC2 .scan STZ2 JMP2r
+@load-post ( unused* -- body* )
+ POP2 .cur LDZ2 ;path/id copy ;suffix SWP2 copy POP2
+ ;path .File1/name DEO2 #5fff .File1/length DEO2 ;post .File1/read DEO2
+ .File1/success DEI2 DUP2 ORA ?{ ;err/post !fatal }
+ DUP2 #5fff EQU2 ?invalid ;post ADD2 #00 SWP2 STA
+ ;post .scan STZ2
+ &title .scan LDZ2 LDA DUP #0a EQU ?&end #20 LTH ?invalid
+ .scan LDZ2 INC2 .scan STZ2 !&title
+ &end POP .scan LDZ2 ;post EQU2 ?invalid
+ #00 .scan LDZ2 STA .scan LDZ2 INC2 JMP2r
+@copy ( src* dst* -- end* )
+ .ptr-b STZ2 .ptr-a STZ2
+ &loop .ptr-a LDZ2 LDA DUP .ptr-b LDZ2 STA ?{ .ptr-b LDZ2 JMP2r }
+ .ptr-a LDZ2 INC2 .ptr-a STZ2 .ptr-b LDZ2 INC2 .ptr-b STZ2 !&loop
+@out ( str* -- )
+ DUP2 .ptr-a STZ2 &len LDAk ?{ .ptr-a LDZ2 SUB2 DUP2 ORA ?{ POP2 JMP2r } .File2/length DEO2 .ptr-a LDZ2 .File2/write DEO2 .File2/success DEI2 ORA ?{ ;err/write !fatal }
+ #0001 .File2/length DEO2 JMP2r } INC2 !&len
+@escape ( str* -- )
+ .scan STZ2 &loop .scan LDZ2 LDA DUP ?{ POP JMP2r }
+ DUP #26 EQU ?&amp DUP #3c EQU ?&lt DUP #3e EQU ?&gt DUP #22 EQU ?&quot
+ ;byte STA ;byte .File2/write DEO2 !&next
+ &amp POP ;entity-amp out !&next &lt POP ;entity-lt out !&next
+ &gt POP ;entity-gt out !&next &quot POP ;entity-quot out
+ &next .scan LDZ2 INC2 .scan STZ2 !&loop
+@invalid ;err/invalid
+@fatal ( msg* -- )
+ LDAk ?{ POP2 #0a #19 DEO #81 #0f DEO BRK }
+ LDAk #19 DEO INC2 !fatal
+%u16/mod { DIV2k MUL2 SUB2 }
+@year/is-leap
+ DUP2 #0190 u16/mod #0000 EQU2 ?{ DUP2 #0064 u16/mod #0000 EQU2 ?{
+ #0003 AND2 #0000 EQU2 JMP2r } POP2 #00 JMP2r } POP2 #01 JMP2r
+@year-month/days
+ #00 OVR ;&lut ADD2 LDA SWP #01 NEQ ?{ STH DUP2 year/is-leap STHr ADD } NIP NIP JMP2r
+ &lut [ 1f 1c 1f 1e 1f 1e 1f 1f 1e 1f 1e 1f ]
 @year-month-day/<emit> ( year* month day -- )
-	OVR2 OVR2 /dotw dotw/make html/<str>
-	html/<comma>
-	html/<ws>
-	#00 SWP dec/<emit>
-	html/<ws>
-	month/make html/<str>
-	html/<ws> !dec/<emit>
-
-@year-month/days ( year* month -- days )
-	#00 OVR ;&lut ADD2 LDA SWP #01 NEQ ?{
-		STH
-		DUP2 year/is-leap STHr ADD }
-	NIP NIP JMP2r
-
-	&lut [ 1f 1c 1f 1e 1f 1e 1f 1f 1e 1f 1e 1f ]
-
-@year/is-leap ( year* -- bool )
-	DUP2 #0190 u16/mod #0000 EQU2 ?{
-		DUP2 #0064 u16/mod #0000 EQU2 ?{
-			#0003 AND2 #0000 EQU2 JMP2r }
-		POP2 #00 JMP2r }
-	POP2 #01 JMP2r
-
-@doty-year/year-month-day ( doty* year* -- year* month day )
-	,&year STR2
-	STH2
-	#0c00
-	&>l2
-		DUP [ LIT2 &year $2 ] ROT year-month/days #00 SWP DUP2 STH2kr GTH2 ?/skip2
-		STH2k SUB2r !/continue2
-		&skip2 POP2 !{
-		&continue2 POP2 INC GTHk ?/>l2 }
-	NIP STHr POPr INC ,&year LDR2 SWP2 JMP2r
-
-@dotw/make ( dotw -- )
-	#00 SWP #20 SFT2 ;&lut ADD2 JMP2r
-
-	&lut [
-	"Sun 00 "Mon 00 "Tue 00 "Wed 00 "Thu 00 "Fri 00 "Sat 00 ]
-
-@month/make ( month -- )
-	#00 SWP #20 SFT2 ;&lut ADD2 JMP2r
-
-	&lut [
-	"Jan 00 "Feb 00 "Mar 00 "Apr 00 "May 00 "Jun 00 "Jul 00 "Aug 00
-	"Sep 00 "Oct 00 "Nov 00 "Dec 00 ]
-
-@dec/parse ( str* -- dec* )
-	LDA2
-	( a ) [ LIT "0 ] SUB SWP
-	( b ) [ LIT "0 ] SUB #0a MUL ADD #00 SWP JMP2r
-
-@dec/<emit> ( short* -- )
-	[ LIT2r ff00 ]
-	&>read
-		#000a DIV2k STH2k MUL2 SUB2 STH2r INCr ORAk ?/>read
-	POP2
-	&>write
-		NIP #30 ADD ,&b STR
-		;&b .File2/write DEO2
-		OVRr ADDr STHkr ?/>write
-	POP2r JMP2r
-	&b $1
-
-(
-@|Stdlib )
-
-@str/<print> ( str* -- )
-	LDAk DUP ?{ POP POP2 JMP2r }
-	#18 DEO
-	INC2 !/<print>
-
-@str/<print-line> ( str* -- )
-	LDAk DUP #1f GTH ?{ POP POP2 JMP2r }
-	#18 DEO
-	INC2 !/<print-line>
-
-@str/next ( str* -- next* )
-	&>wn
-		LDAk #20 LTH ?{ INC2 !/>wn }
-	INC2 JMP2r
-
-@str/tail ( str* -- end* )
-	&>w2
-		LDAk ?{ JMP2r }
-		INC2 !/>w2
-
-@u16/chr4 ( short* -- a b c d )
-	( a ) DUP2 #03e8 DIV2 u8/dec [ STH POP ]
-	( b ) DUP2 #0064 DIV2 u8/dec [ STH POP ]
-	( c ) DUP2 #000a DIV2 u8/dec [ STH POP ]
-	( d ) #000a /mod u8/dec [ STH POP ] STH2r STH2r JMP2r
-
-(
-@|Assets )
-
-@dict/xml-head "<?xml 20 "version="1.0" 20 "encoding="UTF-8"?> 00
-	&rss-version "<rss 20 "version="2.0"> 00
-	&title "XXIIVV 00
-	&desc "Journal 20 "Logs 00
-	&midnight "12:00:00 20 "-0000 00
-	&rss-path "links/log.xml 00
-	&id "id 00
-
-@path/url "https://wiki.xxiivv.com/ 00
-
-@ascii/space 20
-	&line 0a
-	&lt "<
-	&gt ">
-	&equal "=
-	&quote ""
-	&slash "/
-	&comma ",
-
-@tag/title "title 00
-	&h2 "h2 00
-	&h3 "h3 00
-	&article "article 00
-	&channel "channel 00
-	&link "link 00
-	&description "description 00
-	&item "item 00
-	&rss "rss 00
-	&pubdate "pubDate 00
-	&cdata-a "<![CDATA[ 00
-	&cdata-b "]]> 00
-
-@workarea/buf $&len
-
+ OVR2 OVR2 year-month-day/dotw #00 SWP #20 SFT2 ;weekdays ADD2 out ;comma out #00 SWP dec/<emit> ;space out month/make out ;space out POP2 #0004 .File2/length DEO2 .cur LDZ2 .File2/write DEO2 #0001 .File2/length DEO2 JMP2r
+@year-month-day/dotw
+ OVR #01 GTH ?{ SWP2 #0001 SUB2 SWP2 }
+ STH2 DUP2 #02 SFT2 OVR2 #0064 DIV2 SUB2 OVR2 #0190 DIV2 ADD2 ADD2
+ #00 STHr ADD2 #0000 STHr ;&lut ADD2 LDA ADD2 #0007 u16/mod NIP JMP2r
+ &lut [ 00 03 02 05 00 03 05 01 04 06 02 04 ]
+@weekdays "Sun 00 "Mon 00 "Tue 00 "Wed 00 "Thu 00 "Fri 00 "Sat 00
+@comma 2c 20 00
+@month/make #00 SWP #20 SFT2 ;&lut ADD2 JMP2r
+ &lut [ "Jan 00 "Feb 00 "Mar 00 "Apr 00 "May 00 "Jun 00 "Jul 00 "Aug 00 "Sep 00 "Oct 00 "Nov 00 "Dec 00 ]
+@dec/<emit>
+ [ LIT2r ff00 ] &read #000a DIV2k STH2k MUL2 SUB2 STH2r INCr ORAk ?&read POP2
+ &write NIP #30 ADD ;byte STA ;byte .File2/write DEO2 OVRr ADDr STHkr ?&write POP2r JMP2r
+@site-url/load
+ ;site-url-path .File1/name DEO2 #01ff .File1/length DEO2 ;base .File1/read DEO2
+ .File1/success DEI2 DUP2 ORA ?{ !site-url/fatal } DUP2 #01ff EQU2 ?site-url/fatal
+ ;base ADD2 #00 SWP2 STA
+ ;base ;http prefix ?&http ;base ;https prefix ?{ !site-url/fatal }
+ ;base #0008 ADD2 !&host
+ &http ;base #0007 ADD2
+ &host LDA DUP #21 LTH SWP #2f EQU ORA ?site-url/fatal
+ ;base .scan STZ2
+ &loop .scan LDZ2 LDA DUP #0a EQU ?&newline DUP ?{ POP !&end }
+ DUP #21 LTH ?site-url/fatal DUP #7e GTH ?site-url/fatal
+ DUP #22 EQU ?site-url/fatal DUP #27 EQU ?site-url/fatal
+ DUP #23 EQU ?site-url/fatal DUP #3f EQU ?site-url/fatal DUP #5c EQU ?site-url/fatal
+ DUP #26 EQU ?site-url/fatal DUP #3c EQU ?site-url/fatal DUP #3e EQU ?site-url/fatal
+ POP .scan LDZ2 INC2 .scan STZ2 !&loop
+ &newline POP .scan LDZ2 INC2 LDA ?site-url/fatal #00 .scan LDZ2 STA
+ &end .scan LDZ2 #0001 SUB2 LDA #2f NEQ ?site-url/fatal JMP2r
+@site-url/fatal ;err/site-url !fatal
+@prefix ( value* prefix* -- bool )
+ .ptr-b STZ2 .ptr-a STZ2
+ &loop .ptr-b LDZ2 LDA ?{ #01 JMP2r }
+ .ptr-a LDZ2 LDA .ptr-b LDZ2 LDA EQU ?{ #00 JMP2r }
+ .ptr-a LDZ2 INC2 .ptr-a STZ2 .ptr-b LDZ2 INC2 .ptr-b STZ2 !&loop
+@site-url-path "src/site-url.txt 00
+@http "http:// 00
+@https "https:// 00
+@err/site-url "blog: 20 "missing 20 "or 20 "invalid 20 "site 20 "URL 00
+@base $200
+@stat-buf $4
+@empty "<h2>Blog</h2><p>No 20 "posts 20 "yet.</p> 0a 00
+@manifest "src/blog/index.txt 00
+@html-path "src/htm/blog.htm 00
+@rss-path "links/log.xml 00
+@path "src/blog/ &id $100
+@suffix ".htm 00
+@err/missing "blog: 20 "missing/oversized 20 "manifest 00
+ &post "blog: 20 "missing/empty/oversized 20 "post 00
+ &write "blog: 20 "cannot 20 "write 20 "output 00
+ &invalid "blog: 20 "invalid 20 "date, 20 "ID, 20 "order, 20 "duplicate 20 "or 20 "post 00
+@article "<article 20 "id= 22 00
+@article-title 22 "><h2> 00
+@heading-end "</h2> 0a 00
+@article-end "</article> 0a 00
+@rss-head "<?xml 20 "version= 22 "1.0 22 20 "encoding= 22 "UTF-8 22 "?> 0a "<rss 20 "version= 22 "2.0 22 "><channel><title>Russ 20 "Ballard</title><link> 00
+@rss-tail "</channel></rss> 0a 00
+@item "<item><title> 00
+@title-end "</title> 00
+@link "<link> 00
+@blog-path "site/blog.html# 00
+@channel-link "site/blog.html</link><description>Blog</description> 0a 00
+@link-end "</link> 00
+@pub "<pubDate> 00
+@pub-end 20 "00:00:00 20 "+0000</pubDate> 00
+@desc "<description> 00
+@desc-end "</description></item> 0a 00
+@entity-amp "&amp; 00
+@entity-lt "&lt; 00
+@entity-gt "&gt; 00
+@entity-quot "&quot; 00
+@space 20 00
+@byte $1
+@entries $2000
+@post $6000
