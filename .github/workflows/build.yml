@@ -17,6 +17,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes build-essential git gawk python3
+      - name: Test build guards
+        run: bash scripts/test-build-guards.sh
       - name: Build with pinned tools
         run: bash scripts/build.sh
       - name: Check generated HTML and RSS
