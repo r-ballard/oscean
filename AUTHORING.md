@@ -1,8 +1,3 @@
-# Native HTML authoring contract
-
-Articles use Oscean's existing HTML-fragment workflow. There is no Markdown
-conversion or new authoring dependency. Optional conversion is deferred in HAR-120.
-Use the toolchain and commands in [BUILDING.md](BUILDING.md).
 
 ## Article identity, title and hierarchy
 
