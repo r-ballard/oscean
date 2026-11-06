@@ -1,91 +1,28 @@
 DIR=$(HOME)/roms
 EMU=uxncli
-BAL=uxnbal
 ASM=${EMU} ${DIR}/drifblim.rom
-LIN=${EMU} ${DIR}/uxnlin.rom
 
-run: bin/oscean.rom links/img.xml links/log.xml docs/index.html etc/index.html repl
-	@ mkdir -p tmp && rm -f tmp/*
-	@ mkdir -p site && rm -f site/*
+.PHONY: run blog clean
+
+# Blog output is rebuilt every time so removed entries cannot survive in the feed.
+run: bin/oscean.rom blog
+	@ mkdir -p tmp site
+	@ rm -f tmp/* site/*
 	@ echo "HTML(site)"
 	@ ${EMU} bin/oscean.rom
-clean:
-	@ rm -f bin/* && rm -fr tmp/* && rm -f site/*
-bal:
-	@ ${BAL} src/oscean.tal
-lint:
-	@ ${LIN} src/oscean.tal
-	@ ${LIN} src/dir.tal
-	@ ${LIN} src/img.tal
-	@ ${LIN} src/log.tal
-push:
-	@ git commit -am '*'
-	@ git push
-grab:
-	@ mkdir -p etc/uxn5
-	@ cp -r ../uxn5/index.html ../uxn5/src/ ../uxn5/media/ etc/uxn5/
-	@ mkdir -p etc/solrela
-	@ cp -r ../solrela/index.html ../solrela/src/ ../solrela/media/ etc/solrela/
 
-.PHONY: run clean bal lint push grab repl
+blog: bin/log.rom
+	@ mkdir -p src/htm links
+	@ echo "HTML(blog) RSS(log)"
+	@ ${EMU} bin/log.rom
 
 bin/oscean.rom: src/oscean.tal
+	@ mkdir -p bin
 	@ ${ASM} src/oscean.tal bin/oscean.rom
-bin/dir.rom: src/dir.tal
-	@ ${ASM} src/dir.tal bin/dir.rom
-bin/img.rom: src/img.tal
-	@ ${ASM} src/img.tal bin/img.rom
+
 bin/log.rom: src/log.tal
+	@ mkdir -p bin
 	@ ${ASM} src/log.tal bin/log.rom
 
-links/img.xml: bin/img.rom src/logs/*
-	@ echo "RSS(img)"
-	@ ${EMU} bin/img.rom > links/img.xml
-links/log.xml: bin/log.rom src/logs/*
-	@ echo "RSS(log)"
-	@ ${EMU} bin/log.rom
-docs/index.html: bin/dir.rom docs/*
-	@ echo "HTML(docs)"
-	@ ${EMU} bin/dir.rom docs/
-etc/index.html: bin/dir.rom etc/*
-	@ echo "HTML(etc)"
-	@ ${EMU} bin/dir.rom etc/
-
-# Repls
-
-repl: etc/uxnrepl/src/asm.js etc/rejoicerepl/src/rejoice.js etc/lisprepl/src/heol.js etc/thuerepl/src/thue.js etc/neurrepl/src/neur.js etc/modalrepl/src/modal.js etc/tagrepl/src/tag.js etc/pop2repl/src/pop2.js
-
-bin/format-js.rom: etc/format-js.tal.txt
-	@ ${ASM} etc/format-js.tal.txt bin/format-js.rom
-etc/uxnrepl/src/asm.js: bin/format-js.rom etc/drifloon.tal.txt
-	@ ${ASM} etc/drifloon.tal.txt assembler
-	@ ${EMU} bin/format-js.rom assembler > etc/uxnrepl/src/asm.js
-	@ rm -f assembler assembler.sym
-etc/rejoicerepl/src/rejoice.js: bin/format-js.rom etc/rejoice.tal.txt
-	@ ${ASM} etc/rejoice.tal.txt rejoice
-	@ ${EMU} bin/format-js.rom rejoice > etc/rejoicerepl/src/rejoice.js
-	@ rm -f rejoice rejoice.sym
-etc/lisprepl/src/heol.js: bin/format-js.rom etc/heol.tal.txt
-	@ ${ASM} etc/heol.tal.txt heol
-	@ ${EMU} bin/format-js.rom heol > etc/lisprepl/src/heol.js
-	@ rm -f heol heol.sym
-etc/thuerepl/src/thue.js: bin/format-js.rom etc/thue.tal.txt
-	@ ${ASM} etc/thue.tal.txt thue
-	@ ${EMU} bin/format-js.rom thue > etc/thuerepl/src/thue.js
-	@ rm -f thue thue.sym
-etc/neurrepl/src/neur.js: bin/format-js.rom etc/neur.tal.txt
-	@ ${ASM} etc/neur.tal.txt neur
-	@ ${EMU} bin/format-js.rom neur > etc/neurrepl/src/neur.js
-	@ rm -f neur neur.sym
-etc/modalrepl/src/modal.js: bin/format-js.rom etc/modal.tal.txt
-	@ ${ASM} etc/modal.tal.txt modal
-	@ ${EMU} bin/format-js.rom modal > etc/modalrepl/src/modal.js
-	@ rm -f modal modal.sym
-etc/tagrepl/src/tag.js: bin/format-js.rom etc/tag.tal.txt
-	@ ${ASM} etc/tag.tal.txt tag
-	@ ${EMU} bin/format-js.rom tag > etc/tagrepl/src/tag.js
-	@ rm -f tag tag.sym
-etc/pop2repl/src/pop2.js: bin/format-js.rom etc/pop2.tal.txt
-	@ ${ASM} etc/pop2.tal.txt pop2
-	@ ${EMU} bin/format-js.rom pop2 > etc/pop2repl/src/pop2.js
-	@ rm -f pop2 pop2.sym
+clean:
+	@ rm -f bin/*.rom bin/*.sym tmp/* site/* links/log.xml src/htm/blog.htm src/htm/sitemap.htm

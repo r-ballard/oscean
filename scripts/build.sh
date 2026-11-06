@@ -4,7 +4,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 cd "$root"
 command -v make >/dev/null || { echo 'Missing prerequisite: make (see BUILDING.md)' >&2; exit 1; }
 # File devices read binary bytes: CRLF changes lexicon names and breaks paths.
-crlf=$(grep -rIlUP '\r' src etc --include='*.tal' --include='*.tal.txt' --include='*.htm' --include='lexicon' --include='*.tsv' || [[ $? == 1 ]])
+crlf=$(grep -rIlUP '\r' src etc --include='index.txt' --include='*.tal' --include='*.tal.txt' --include='*.htm' --include='lexicon' --include='*.tsv' || [[ $? == 1 ]])
 if [[ -n "$crlf" ]]; then
     printf 'CRLF build inputs detected. Use a fresh LF checkout; see BUILDING.md.\n' >&2
     printf '%s\n' "$crlf" | head -n 10 >&2

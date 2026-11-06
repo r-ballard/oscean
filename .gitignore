@@ -15,3 +15,7 @@ t/
 *.rom.sym
 .toolchain/
 .github/development/
+/site/
+/links/log.xml
+/src/htm/blog.htm
+/src/htm/sitemap.htm

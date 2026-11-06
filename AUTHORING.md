@@ -7,17 +7,18 @@ a literal space, and a lowercase name; keep entries in hierarchy order:
 ```text
 0 home
 1 about
-1 topics
-2 small systems
-2 durable notes
+2 russ ballard
+3 cv
+3 academic
+3 professional
+3 blog
+2 meta
 ```
 
-This illustrates a small future lexicon; do not replace the current lexicon with
-it before the content replacement work. A child has a depth one greater than its
-parent. Place children immediately after their parent and preceding siblings;
+This is the current hierarchy. A child has a depth one greater than its parent. Place children immediately after their parent and preceding siblings;
 return to the parent's depth for its next sibling. Prefer ordinary space entries.
-Punctuation after the depth selects upstream modules (`.`, `,`, `;`, `#`), so it
-is not interchangeable with a space.
+Use a space after the depth. Upstream punctuation modules (`.`, `,`, `;`, `#`)
+are reserved and are not enabled in this minimal page workflow.
 
 The lexicon name supplies the page label and title. Keep names short, unique,
 lowercase ASCII words separated by single spaces, at most 21 characters including spaces.
@@ -97,33 +98,61 @@ build is not a complete browser/link validator.
 4. From an LF checkout in the configured shell, run `bash scripts/build.sh`.
 5. Read the diagnostics, inspect `site/<slug>.html`, and check hierarchy, links,
    incoming links and assets in a browser.
-6. Review the Git diff before committing authored inputs. The current upstream
-   build also rewrites generated pages, feeds and REPL assets; minimal publish
-   output is separate roadmap work in HAR-113.
+6. Review the Git diff before committing authored inputs. Generated site pages,
+   feed XML and blog/sitemap fragments are ignored; do not commit them as source.
 
 Remove a page by removing its lexicon entry, fragment and incoming references,
 then rebuild. The current `make run` clears generated `site/` pages before writing
 them again. Do not hand-edit generated `site/*.html` as article source.
-Do not run the bundled `make push` target; use ordinary reviewed Git operations.
+The build scripts do not push; use ordinary reviewed Git operations.
 
-## Dates and the existing journal
+## Dated blog entries
 
-Evergreen articles do not need journal records. If a visible article date is useful,
-write an ISO date such as `2026-11-05` in the body; it does not automatically become
-a journal entry or feed item.
+The blog uses Gregorian `YYYY-MM-DD` dates exclusively. Dates are authored, not
+inferred from the build clock or file modification times. Rebuilding preserves
+the publication date. There is no separate journal page or Arvelie date input.
 
-Retaining the journal is still an owner decision for HAR-111. Until then, preserve
-the existing journal mechanism: `src/logs/NN.tsv` records use upstream Arvelie date
-codes, a topic name and a description separated by real tab characters. Topic names
-must exactly match lexicon names. A date such as `20V14+000` is an upstream code,
-not an ISO date; do not invent Gregorian-to-Arvelie conversions. The generator has
-hardcoded year ranges, so a new year or calendar change requires inspecting the
-existing Uxntal sources and rebuilding the relevant ROMs.
+`src/blog/index.txt` lists one entry ID per line, newest publication date first:
 
-Journal, events and sitemap fragments are generated during the build. Shared
-`meta_head`, `meta_header` and `meta_footer` fragments are also part of the page
-system. Do not remove these as ordinary articles when stripping upstream content.
+```text
+2026-11-05-sample-entry
+```
 
+Each ID is `YYYY-MM-DD-slug`; use a short lowercase ASCII slug with hyphens.
+Create `src/blog/<ID>.htm`. Its first line is the plain title; the remaining lines
+are the native HTML body, for example:
+
+```html
+Sample entry
+<p><strong>Sample entry.</strong> This demonstrates the blog format.</p>
+<p>See <a href="meta.html">meta</a> for how the wiki works.</p>
+```
+
+This first title line is specific to blog sources, not ordinary article fragments.
+The blog generator validates dates, including leap days, and refuses invalid or
+missing inputs. Register each ID once. Multiple entries on the same date retain
+the manifest's chosen order. The generated URL is `blog.html#<ID>`; authored body
+links and asset paths are relative to that page in `site/`.
+
+Set `src/site-url.txt` to the absolute publication base URL, ending in `/`.
+The current `https://r-ballard.github.io/oscean/` value is the proposed fork
+Pages preview base, not a production cutover. Confirm it before deployment.
+The feed generator requires it so readers can resolve entry links.
+
+Run `bash scripts/build.sh` after changing entries. It rebuilds `src/htm/blog.htm`
+and `links/log.xml` before the page engine. Those are generated outputs. Removing
+an ID from the manifest and rebuilding removes its rendered entry and feed item.
+An existing empty manifest generates a blog with a no-posts message and an empty
+RSS channel; a missing manifest is an error. If changing a published ID, preserve
+incoming links deliberately.
+
+Use explicit ISO dates for any visible article timestamps too. RSS publication
+dates use the standard Gregorian RSS date syntax required by feed readers; this
+is serialization, not an additional authoring calendar. Feed descriptions are
+date/title summaries, with absolute links to the full HTML entries.
+
+The repository's initial entry is explicitly labeled sample content, not a real
+personal event. Replace or remove it before publishing personal writing.
 ## Portability and exit
 
 Keep articles as body HTML with standard tags and ordinary links. Avoid embedded
@@ -133,6 +162,6 @@ conversion is needed to retain the authored content.
 
 On exit, translate `src/lexicon` into the new generator's title/slug/parent metadata,
 keep the published `<slug>.html` URL mapping where possible, and retain or rewrite
-relative asset paths deliberately. Journal TSV/date codes and module punctuation
-need separate metadata/calendar translation. Generated navigation, backlinks,
+relative asset paths deliberately. Blog manifest order and title lines
+need separate metadata translation. Blog dates already use ISO Gregorian form. Generated navigation, backlinks,
 feeds and shared templates can be recreated from the authored inputs.

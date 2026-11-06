@@ -1,4 +1,4 @@
-name: Verify upstream build
+name: Verify wiki build
 on:
   push:
   pull_request:
@@ -21,3 +21,5 @@ jobs:
         run: bash scripts/test-build-guards.sh
       - name: Build with pinned tools
         run: bash scripts/build.sh
+      - name: Test native Gregorian blog
+        run: bash scripts/test-blog.sh
