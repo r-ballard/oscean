@@ -111,6 +111,8 @@ The build scripts do not push; use ordinary reviewed Git operations.
 The blog uses Gregorian `YYYY-MM-DD` dates exclusively. Dates are authored, not
 inferred from the build clock or file modification times. Rebuilding preserves
 the publication date. There is no separate journal page or Arvelie date input.
+When creating an entry, `date +%F` prints today's local date in the configured
+shell; copy it into the ID once rather than calculating dates during a build.
 
 `src/blog/index.txt` lists one entry ID per line, newest publication date first:
 

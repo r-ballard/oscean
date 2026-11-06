@@ -9,8 +9,9 @@ T=$(CDPATH= cd -- "$T" && pwd -P)
 case "$T" in /tmp/oscean-blog-test.*) ;; *) echo "Unsafe fixture path" >&2; exit 1;; esac
 trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/src/blog" "$T/src/htm" "$T/links"
-"$EMU" "$DRIFBLIM" "$ROOT/src/log.tal" "$T/log.rom"
+cp "$ROOT/src/log.tal" "$T/log.tal"
 cd "$T"
+"$EMU" "$DRIFBLIM" log.tal log.rom
 printf 'https://example.org/wiki/\n' > src/site-url.txt
 printf '%s\n' 2024-02-29-first > src/blog/index.txt
 printf 'A & <title>\n<p>Body & text ]]>.</p>\n' > src/blog/2024-02-29-first.htm
@@ -18,6 +19,7 @@ printf 'A & <title>\n<p>Body & text ]]>.</p>\n' > src/blog/2024-02-29-first.htm
 [ -f src/htm/blog.htm ] || { echo 'FAIL: missing native blog output'; exit 1; }
 grep -q '2024-02-29-first' src/htm/blog.htm
 grep -q 'A &amp; &lt;title&gt;' links/log.xml
+grep -q '<link>https://example.org/wiki/site/blog.html</link>' links/log.xml || { echo 'FAIL channel URL whitespace'; exit 1; }
 grep -q '<link>https://example.org/wiki/site/blog.html#2024-02-29-first</link>' links/log.xml
 grep -q '<description>2024-02-29 A &amp; &lt;title&gt;</description>' links/log.xml
 if grep -q 'Body' links/log.xml; then echo 'FAIL feed contains body'; exit 1; fi

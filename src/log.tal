@@ -155,7 +155,7 @@
 @article-title 22 "><h2> 00
 @heading-end "</h2> 0a 00
 @article-end "</article> 0a 00
-@rss-head "<?xml 20 "version= 22 "1.0 22 20 "encoding= 22 "UTF-8 22 "?> 0a "<rss 20 "version= 22 "2.0 22 "><channel><title>Russ 20 "Ballard</title><link> 0a 00
+@rss-head "<?xml 20 "version= 22 "1.0 22 20 "encoding= 22 "UTF-8 22 "?> 0a "<rss 20 "version= 22 "2.0 22 "><channel><title>Russ 20 "Ballard</title><link> 00
 @rss-tail "</channel></rss> 0a 00
 @item "<item><title> 00
 @title-end "</title> 00
