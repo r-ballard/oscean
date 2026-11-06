@@ -13,5 +13,4 @@ t/
 .snarf
 *.rom
 *.rom.sym
-
-
+.toolchain/
