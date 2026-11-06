@@ -1,0 +1,53 @@
+.\" Manpage reference for uxncli.
+.\" by Eiríkr Åsheim
+.\" Contact d_m@plastic-idolatry.com to correct errors or typos.
+.TH uxncli 1 "13 Aug 2026" "1.0" "Uxntal Reference Guide"
+.SH NAME
+uxncli \- Varvara virtual machine for the console
+.SH SYNOPSIS
+    uxncli \fIromfile\fP [ \fIargument\fP ]...
+    uxncli \fB-v\fP
+.SH DESCRIPTION
+Uxncli is a console-only implementation of the Varvara virtual
+machine. It is an emulator designed to run compatible ROM files.
+.SH OPTIONS
+.TP
+.B \-v Print version and exit
+.SH VARVARA DEVICE SUPPORT
+.SS System (\fB0x0\fP)
+The system device is fully supported, although the color ports have no effect. The debugging port prints information on \fIstderr\fP.
+.SS Console (\fB0x1\fP)
+The console device is fully supported. Input from \fIstdin\fP is line-buffered, but output from \fIstdout\fP and \fIstderr\fP is unbuffered.
+.SS Screen (\fB0x2\fP)
+Unsupported.
+.SS Audio (\fB0x3\fP through \fB0x6\fP)
+Unsupported.
+.SS Controller (\fB0x8\fP)
+Unsupported.
+.SS Mouse (\fB0x9\fP)
+Unsupported.
+.SS File (\fB0xa\fP and \fB0xb\fP)
+The file device is fully supported. Paths are relative to the working directory and file access is not sandboxed.
+.SS Datetime (\fB0xc\fP)
+The date/time device is fully supported.
+.SH NOTES
+\fBuxncli\fP doesn't do any kind of text encoding. It is the job of
+the ROM and caller to ensure that character encodings and terminal
+control sequences match the underlying terminal (if any).
+.PP
+There is no way to disable the line-buffering of \fIstdin\fP, making
+Uxncli inappropriate for interactive programs that need to respond to
+individual keystrokes.
+.PP
+Uxncli doesn't implement a screen or audio device, so it lacks the
+ability to do timer-based callbacks.
+.SH "SEE ALSO"
+    https://wiki.xxiivv.com/site/uxn.html     \fIUxn Homepage\fP
+    https://wiki.xxiivv.com/site/varvara.html \fIVarvara VM Specification\fP
+    https://git.sr.ht/~rabbits/uxncli         \fIUxncli Source Control\fP
+    https://git.sr.ht/~rabbits/uxn11          \fIUxn11 - X11 emulator\fP
+    https://git.phial.org/d6/uxntty           \fIUxntty - TTY emulator\fP
+.SH AUTHORS
+Devine Lu Linvega, Andrew Alderwick, Andrew Richards, Eiríkr Åsheim, Sigrid Solveig Haflínudóttir
+.SH VERSION
+Uxncli implements Varvara version 79K and Uxntal version 54K.

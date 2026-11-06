@@ -1,0 +1,2 @@
+( A reset BRK with no console vector returns host status 0. )
+|0100 BRK

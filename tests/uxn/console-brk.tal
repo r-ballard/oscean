@@ -1,0 +1,3 @@
+( The reset BRK permits a console callback at EOF; callback emits X and exits. )
+|0100 ;on-console #10 DEO2 BRK
+@on-console #58 #18 DEO #80 #0f DEO BRK

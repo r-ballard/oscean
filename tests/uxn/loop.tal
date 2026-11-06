@@ -1,0 +1,2 @@
+( Intentionally nonterminating; the test expects external timeout status 124. )
+|0100 @again !again

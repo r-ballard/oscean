@@ -1,0 +1,3 @@
+( -- )
+( ADD2 produces short 0x0406; EQU2 produces one byte. Status 0 on match. )
+|0100 #0102 #0304 ADD2 #0406 EQU2 #01 EOR #80 ORA #0f DEO BRK

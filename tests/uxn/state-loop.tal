@@ -1,0 +1,2 @@
+( Setting state does not interrupt the evaluator before BRK. )
+|0100 #81 #0f DEO @again !again

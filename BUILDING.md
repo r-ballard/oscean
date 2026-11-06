@@ -73,7 +73,14 @@ before generation, because Varvara file devices consume literal bytes. Preserve
 personal edits before repairing an old checkout; a fresh clone with
 `git -c core.autocrlf=false clone ...` is the safest starting point.
 
-CI calls the same build entry point and native shell/Uxn regression checks. These
+CI calls the same build entry point and native shell/Uxn regression checks.
+After bootstrap, `bash scripts/test-uxn.sh` exercises pinned runtime semantics;
+`bash scripts/test-blog.sh` checks the application. ROM calls have a five-second
+default deadline (`UXN_TEST_TIMEOUT`, whole seconds from 1 through 60) and closed stdin, so a hang is distinct
+from an expected rejection. GNU timeout is supplied by existing coreutils.
+Repository agent guidance lives in AGENTS.md and the source-grounded skill under
+.agents/skills/uxntal-development/; these are development instructions, not runtime
+dependencies. These
 add no new runtime dependencies. Review generator diagnostics and inspect the
 rendered pages, links and feed when reviewing content. No bundled push target,
 upstream writes or deployment is performed by the build scripts.

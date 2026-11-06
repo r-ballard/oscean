@@ -21,5 +21,7 @@ jobs:
         run: bash scripts/test-build-guards.sh
       - name: Build with pinned tools
         run: bash scripts/build.sh
+      - name: Test pinned Uxn semantics
+        run: bash scripts/test-uxn.sh
       - name: Test native Gregorian blog
         run: bash scripts/test-blog.sh

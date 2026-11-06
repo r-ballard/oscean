@@ -1,0 +1,2 @@
+( System/state 0x81 is masked by the CLI to exit status 1 after evaluation. )
+|0100 #81 #0f DEO BRK
