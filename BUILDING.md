@@ -1,6 +1,6 @@
 # Building Oscean
 
-Use Bash, Git, GCC, GNU Make, awk and sha256sum. No WSL is required.
+Use Bash, Git, GCC, GNU Make, awk, GNU grep (with PCRE support) and sha256sum. No WSL is required.
 The scripts invoke the upstream makefile unchanged. `make run` rewrites generated
 `site/`, `links/`, `docs/index.html`, `etc/index.html` and REPL assets. Use a clean
 checkout or a disposable clone; do not mix a build with uncommitted content edits.
