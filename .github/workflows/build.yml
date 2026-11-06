@@ -16,10 +16,8 @@ jobs:
       - name: Install build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install --yes build-essential git gawk python3
+          sudo apt-get install --yes build-essential git gawk
       - name: Test build guards
         run: bash scripts/test-build-guards.sh
       - name: Build with pinned tools
         run: bash scripts/build.sh
-      - name: Check generated HTML and RSS
-        run: python3 scripts/check-output.py

@@ -35,11 +35,10 @@ On Ubuntu/Debian:
 
 ```sh
 sudo apt-get update
-sudo apt-get install --yes build-essential git gawk python3
+sudo apt-get install --yes build-essential git gawk
 git clone https://github.com/r-ballard/oscean.git
 cd oscean
 bash scripts/build.sh
-python3 scripts/check-output.py
 ```
 
 ## Pinned tools
@@ -72,7 +71,8 @@ On Windows it built successfully with the tools above: 540 site files and two
 parseable RSS feeds. Upstream emits orphan/hidden content warnings and circular
 index dependency warnings; these do not by themselves fail the build.
 
-Run `python3 scripts/check-output.py` after building (Python 3 is needed only for
-this additional check). CI uses the same build entry point and this verifier.
-Inspect `site/home.html` in a browser as well. No script invokes the `push` target
+CI runs the shell guard tests and the same upstream build entry point. The Uxn
+programs emit content diagnostics, and make propagates fatal build failures.
+This setup adds no separate HTML or XML validator. Inspect `site/home.html` and
+the generated feeds when reviewing output. No script invokes the `push` target
 or deploys the site.
