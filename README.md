@@ -6,6 +6,10 @@ This is the repository for the [Oscean wiki](http://wiki.xxiivv.com/), see the [
 
 See [BUILDING.md](BUILDING.md) for the pinned Windows/MSYS2 and Linux setup.
 
+## Authoring
+
+See [AUTHORING.md](AUTHORING.md) for native HTML articles, links and lexicon conventions.
+
 ## Build
 
 The `oscean.rom` file can be assembled with [drifblim](https://git.sr.ht/~rabbits/drifblim).
